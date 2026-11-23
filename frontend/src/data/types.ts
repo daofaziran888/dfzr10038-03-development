@@ -30,6 +30,19 @@ export type PageResult = {
 export type ActionResult = {
   ok: boolean
   message: string
+  claim?: {
+    ok: boolean
+    message: string
+    action: string
+    batch?: string
+    acquired?: string[]
+    held?: string[]
+    occupied?: { date: string; source: string; plan: string }[]
+    pending?: string[]
+    completed?: string[]
+    executed?: string[]
+    released?: string[]
+  }
 }
 
 export type OverviewResult = {

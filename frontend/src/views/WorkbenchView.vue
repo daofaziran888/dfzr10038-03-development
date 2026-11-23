@@ -15,6 +15,11 @@
       </div>
     </header>
 
+    <BackfillGapPanel
+      v-if="meta.key === 'backfill_scope' || meta.key === 'schedule_job'"
+      :refresh-token="refreshToken"
+    />
+
     <div class="stat-row">
       <article v-for="item in stats" :key="item.label" class="stat-card">
         <span class="stat-label">{{ item.label }}</span>
@@ -104,6 +109,7 @@ import {
   runAction as applyAction,
 } from '@/api/backend-service'
 import type { EntryRow } from '@/data/types'
+import BackfillGapPanel from '@/components/BackfillGapPanel.vue'
 
 const props = defineProps<{ moduleKey: string }>()
 const meta = moduleMeta(props.moduleKey)
@@ -113,6 +119,7 @@ const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = meta.fields.slice(0, 3)
 const showCreate = ref(false)
+const refreshToken = ref(0)
 const creating = ref(false)
 const createValues = ref<Record<string, string>>({})
 const stats = computed(() => [
@@ -158,6 +165,7 @@ async function submitCreate() {
     if (!result.ok) throw new Error(result.message)
     showCreate.value = false
     await reload()
+    refreshToken.value += 1
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '登记失败'
   } finally {
@@ -171,6 +179,7 @@ async function runAction(action: string, row: EntryRow) {
     const result = await applyAction(meta.key, Number(row.id), action)
     if (!result.ok) throw new Error(result.message)
     await reload()
+    refreshToken.value += 1
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '操作失败'
   }

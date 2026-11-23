@@ -9,10 +9,23 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 
 from app.schemas import ActionPayload, ActionResult, EntryPayload, PageResult
-from app.services import service_for
+from app.services import backfill_gap, service_for
 from app.services.data_flow import FlowEffect, FLOW_TRIGGERS, flow_engine
 
 router = APIRouter(prefix="/api", tags=["业务资源"])
+
+
+@router.get("/backfill_gap")
+def backfill_gap_board(feature: str | None = Query(default=None)) -> dict[str, Any]:
+    """缺口分区明细看板：按特征归并回溯任务，展示每日覆盖状态。"""
+    return backfill_gap.board(feature)
+
+
+@router.get("/backfill_gap/partitions")
+def backfill_gap_partitions(feature: str | None = Query(default=None)) -> dict[str, Any]:
+    """缺口分区明细列表：同一特征的多份回溯任务归并到日期。"""
+    rows = backfill_gap.all_partitions(feature)
+    return {"items": rows, "total": len(rows), "summary": backfill_gap.summary_of(rows)}
 
 
 def require_service(module: str):
@@ -83,12 +96,26 @@ def get_entry(module: str, entry_id: int) -> dict[str, Any]:
     return entry
 
 
+@router.post("/schedule_job/{entry_id}/claim-strategy")
+def schedule_claim_strategy(entry_id: int, payload: ActionPayload) -> dict[str, Any]:
+    """在计划激活前切换认领策略：先跑未分配日期 / 等整段一起交付。"""
+    return backfill_gap.set_strategy(entry_id, payload.action.strip())
+
+
+@router.get("/schedule_job/{entry_id}/claim-preview")
+def schedule_claim_preview(entry_id: int) -> dict[str, Any]:
+    """激活前预览本次到手日期、原有占用和后续补办范围。"""
+    return backfill_gap.preview_plan(entry_id)
+
+
 @router.post("/{module}", response_model=ActionResult)
 def create_entry(module: str, payload: EntryPayload) -> ActionResult:
     service = require_service(module)
-    entry, missing = service.create_entry(payload.values)
+    entry, missing, conflict = service.create_entry(payload.values)
     if missing:
         return ActionResult(ok=False, message=f"缺少必填字段：{'、'.join(missing)}")
+    if conflict:
+        return ActionResult(ok=False, message=conflict)
     return ActionResult(ok=True, message=f"{service.ENTITY}已登记", entry=entry)
 
 
@@ -113,5 +140,10 @@ def run_action(module: str, entry_id: int, payload: ActionPayload) -> ActionResu
     entry, message = service.run_action(entry_id, payload.action.strip())
     # 动作执行后触发跨模块数据流
     flow_result = flow_engine.on_action(module, payload.action.strip(), entry_id)
-    return ActionResult(ok=entry is not None, message=message, entry=entry,
-                        flow=flow_result if flow_result["hits"] > 0 else None)
+    result = ActionResult(ok=entry is not None, message=message, entry=entry,
+                          flow=flow_result if flow_result["hits"] > 0 else None)
+    claim_actions = {"激活计划", "重新领取补办"}
+    if module == "schedule_job" and entry is not None and payload.action.strip() in claim_actions:
+        # 认领结果随动作返回，前端无需再猜本次领到了哪些日期。
+        result.claim = entry.get("last_claim")
+    return result

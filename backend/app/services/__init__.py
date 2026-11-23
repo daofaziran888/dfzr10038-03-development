@@ -23,6 +23,7 @@ from app.services.label_dict import LabelDictService
 from app.services.batch_load import BatchLoadService
 from app.services.report_task import ReportTaskService
 from app.services.schedule_job import ScheduleJobService
+from app.services.backfill_scope import BackfillScopeService
 from app.services.govern_audit import GovernAuditService
 
 SERVICES: dict[str, BaseModuleService] = {
@@ -48,6 +49,7 @@ SERVICES: dict[str, BaseModuleService] = {
     "report_task": ReportTaskService(),
     "schedule_job": ScheduleJobService(),
     "govern_audit": GovernAuditService(),
+    "backfill_scope": BackfillScopeService(),
 }
 
 

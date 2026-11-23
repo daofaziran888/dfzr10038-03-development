@@ -589,6 +589,14 @@ def flow_schedule_to_batch_to_backfill(schedule_job_id: int) -> list[FlowEffect]
     plan_no = str(sj.get("计划编号", ""))
     task_type = str(sj.get("任务类型", ""))
 
+    # 按日期认领的特征回溯计划由缺口分区明细驱动，不能再用“找一条待执行任务”
+    # 的方式整段标记完成，否则会把仍在处理中的日期显示成已完成。
+    if task_type == "特征回溯" and any(
+        str(scope.get("目标特征", "")) == str(sj.get("关联对象", ""))
+        for scope in store.rows("backfill_scope")
+    ):
+        return effects
+
     # 触发批量接入
     batch_rows = store.rows("batch_load")
     for brow in batch_rows:

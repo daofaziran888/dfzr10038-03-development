@@ -1,8 +1,33 @@
 import { request } from './client'
 import { moduleMeta } from '@/data/modules'
 import type { ActionResult, EntryRow, OverviewResult, PageResult } from '@/data/types'
+import type { ClaimPreview, ClaimResult, GapBoard } from '@/domain/backfill_gap'
 
 export { moduleMeta }
+
+export async function loadGapBoard(feature?: string): Promise<GapBoard> {
+  const query = feature ? `?feature=${encodeURIComponent(feature)}` : ''
+  const response = await request(`/api/backfill_gap${query}`)
+  if (!response.ok) throw new Error('缺口分区明细读取失败')
+  return await response.json()
+}
+
+export async function loadClaimPreview(planId: number): Promise<ClaimPreview> {
+  const response = await request(`/api/schedule_job/${planId}/claim-preview`)
+  if (!response.ok) throw new Error('认领预览读取失败')
+  return await response.json()
+}
+
+export async function setClaimStrategy(
+  planId: number,
+  strategy: string,
+): Promise<{ ok: boolean; message: string }> {
+  const response = await request(`/api/schedule_job/${planId}/claim-strategy`, {
+    method: 'POST',
+    body: JSON.stringify({ action: strategy }),
+  })
+  return await response.json()
+}
 
 export async function listEntries(
   key: string,

@@ -20,6 +20,7 @@ class ActionResult(BaseModel):
     message: str
     entry: dict[str, Any] | None = None
     flow: dict[str, Any] | None = None
+    claim: dict[str, Any] | None = None
 
 
 class EntryPayload(BaseModel):

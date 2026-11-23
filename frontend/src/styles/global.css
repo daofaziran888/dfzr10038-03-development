@@ -70,3 +70,23 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .analysis-chart { display: flex; align-items: flex-end; gap: 8px; height: 160px; padding: 12px 0; }
 .analysis-bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--brand); min-width: 24px; position: relative; transition: height 0.4s; }
 .analysis-bar span { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--muted); white-space: nowrap; }
+/* 缺口分区明细 */
+.gap-panel { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+.gap-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.gap-head h3 { margin: 0; font-size: 15px; }
+.gap-feature { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.gap-feature select, .plan-fields select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.gap-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+.gap-未覆盖 { background: #fef3c7; color: #92400e; }
+.gap-处理中 { background: #dbeafe; color: #1d4ed8; }
+.gap-已完成 { background: #dcfce7; color: #15803d; }
+.plan-board { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.plan-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: #fafbfc; }
+.plan-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.plan-status { font-size: 12px; color: var(--muted); }
+.plan-fields { display: grid; grid-template-columns: 90px 1fr; gap: 4px 8px; margin: 0 0 10px; }
+.plan-fields dt { font-size: 12px; color: var(--muted); }
+.plan-fields dd { font-size: 13px; margin: 0; word-break: break-all; }
+.gap-message { margin-top: 12px; padding: 8px 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; font-size: 13px; }
+.gap-preview { margin-top: 8px; padding: 8px 12px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 6px; font-size: 13px; color: var(--muted); }
